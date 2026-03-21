@@ -6,6 +6,13 @@ class REEREngine:
     Implements the REverse-Engineered Reasoning (REER) paradigm,
     treating reasoning as a gradient-free local search problem via perplexity (PPL).
     """
+
+    MUTATIONS = [
+        "\nHmm... alternatively, ",
+        "\nWait, that's a bit... ",
+        "\nWait, the user said... "
+    ]
+
     def __init__(self, max_iterations: int = 5):
         self.max_iterations = max_iterations
 
@@ -25,12 +32,7 @@ class REEREngine:
 
         for _ in range(self.max_iterations):
             # Mutate: Append a cognitive exploration trigger or backtracking logic
-            mutations = [
-                "\nHmm... alternatively, ",
-                "\nWait, that's a bit... ",
-                "\nWait, the user said... "
-            ]
-            mutated_thought = best_thought.replace("</thought>", f"{random.choice(mutations)} refining this idea further.\n</thought>")
+            mutated_thought = best_thought.replace("</thought>", f"{random.choice(self.MUTATIONS)} refining this idea further.\n</thought>")
 
             mutated_ppl = self._calculate_ppl_proxy(mutated_thought)
 

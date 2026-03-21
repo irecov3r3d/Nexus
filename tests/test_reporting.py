@@ -18,3 +18,11 @@ def test_bmc_report_generation():
     assert report.hallucination_score == 4
     assert report.status == "Factually Sound"
     assert "AI" in report.customer_segments
+
+def test_bmc_report_generation_no_trajectory():
+    generator = BMCReportGenerator(required_keywords=["cloud", "AI", "API"])
+    data = "Using AI and cloud through our new API."
+    report = generator.generate(data=data)
+    assert report.hallucination_score == 4
+    assert report.status == "Factually Sound"
+    assert report.customer_segments == data[:20]

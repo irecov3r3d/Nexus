@@ -1,4 +1,5 @@
 import random
+import html
 from typing import List
 
 class REEREngine:
@@ -20,7 +21,8 @@ class REEREngine:
         Iteratively appending or modifying thoughts based on previous iterations.
         """
         # Start with an initial seed plan based on query
-        best_thought = f"<thought>\nLet me think... maybe we should address '{initial_query}'.\n</thought>"
+        sanitized_query = html.escape(initial_query)
+        best_thought = f"<thought>\nLet me think... maybe we should address '{sanitized_query}'.\n</thought>"
         best_ppl = self._calculate_ppl_proxy(best_thought)
 
         for _ in range(self.max_iterations):

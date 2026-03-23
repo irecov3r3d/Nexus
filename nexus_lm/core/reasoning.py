@@ -1,6 +1,5 @@
 import random
 import html
-from typing import List
 
 class REEREngine:
     """

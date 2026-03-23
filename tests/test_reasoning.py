@@ -11,3 +11,8 @@ def test_reer_mutations():
     trajectory = engine.search("Complex Problem")
     assert trajectory.startswith("<thought>")
     assert trajectory.endswith("</thought>")
+
+def test_reer_zero_iterations():
+    engine = REEREngine(max_iterations=0)
+    trajectory = engine.search("Test Query")
+    assert trajectory == "<thought>\nLet me think... maybe we should address 'Test Query'.\n</thought>"

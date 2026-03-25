@@ -35,7 +35,10 @@ class REEREngine:
         """
         # Start with an initial seed plan based on query
         sanitized_query = html.escape(initial_query)
-        best_thought = f"<thought>\nLet me think... maybe we should address '{sanitized_query}'.\n</thought>"
+        best_content = f"Let me think... maybe we should address '{sanitized_query}'."
+
+        # Pre-format the tag structure to minimize string operations in the loop
+        best_thought = f"<thought>\n{best_content}\n</thought>"
         best_ppl = self._calculate_ppl_proxy(best_thought)
 
         for _ in range(self.max_iterations):
@@ -43,11 +46,13 @@ class REEREngine:
             mutation = random.choice(self.MUTATIONS)
 
             # Simulated thought insertion
-            new_thought = best_thought.replace("</thought>", f"{mutation}\n</thought>")
+            new_content = f"{best_content}{mutation}"
+            new_thought = f"<thought>\n{new_content}\n</thought>"
             new_ppl = self._calculate_ppl_proxy(new_thought)
 
             # Acceptance criteria (simulated annealing-like)
             if new_ppl < best_ppl or random.random() < self.temperature:
+                best_content = new_content
                 best_thought = new_thought
                 best_ppl = new_ppl
 

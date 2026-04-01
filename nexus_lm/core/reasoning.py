@@ -1,5 +1,5 @@
-import random
 import html
+import random
 from typing import List
 
 class REEREngine:
@@ -28,6 +28,11 @@ class REEREngine:
         # Simple heuristic: longer, well-structured thoughts lower PPL
         return random.uniform(0.5, 2.0) - (len(thought_text) * 0.001)
 
+    def _construct_trajectory(self, initial_thought: str, accepted_mutations: List[str]) -> str:
+        """Helper to build trajectory string from mutations."""
+        joined_mutations = "".join(accepted_mutations)
+        return f"<thought>\n{initial_thought}{joined_mutations}\n</thought>"
+
     def search(self, initial_query: str) -> str:
         """
         Executes gradient-free local search to find optimal trajectory.
@@ -35,20 +40,24 @@ class REEREngine:
         """
         # Start with an initial seed plan based on query
         sanitized_query = html.escape(initial_query)
-        best_thought = f"<thought>\nLet me think... maybe we should address '{sanitized_query}'.\n</thought>"
-        best_ppl = self._calculate_ppl_proxy(best_thought)
+        initial_thought = f"Let me think... maybe we should address '{sanitized_query}'."
+
+        accepted_mutations = []
+        best_trajectory = self._construct_trajectory(initial_thought, accepted_mutations)
+        best_ppl = self._calculate_ppl_proxy(best_trajectory)
 
         for _ in range(self.max_iterations):
             # Mutate thought
             mutation = random.choice(self.MUTATIONS)
+            candidate_mutations = accepted_mutations + [mutation]
 
-            # Simulated thought insertion
-            new_thought = best_thought.replace("</thought>", f"{mutation}\n</thought>")
-            new_ppl = self._calculate_ppl_proxy(new_thought)
+            # Reconstruct trajectory for evaluation
+            new_trajectory = self._construct_trajectory(initial_thought, candidate_mutations)
+            new_ppl = self._calculate_ppl_proxy(new_trajectory)
 
             # Acceptance criteria (simulated annealing-like)
             if new_ppl < best_ppl or random.random() < self.temperature:
-                best_thought = new_thought
+                accepted_mutations = candidate_mutations
                 best_ppl = new_ppl
 
-        return best_thought
+        return self._construct_trajectory(initial_thought, accepted_mutations)

@@ -1,6 +1,7 @@
 import sys
+from typing import Any, Dict
+
 from pydantic import __version__ as pydantic_version
-from typing import Dict, Any
 
 from nexus_lm.core.ingestion import HierarchicalSemanticChunker, NodeExpansionLogic
 from nexus_lm.core.reasoning import REEREngine
@@ -71,7 +72,7 @@ def main():
         report_generator = BMCReportGenerator(required_keywords=["cloud", "AI", "API"])
 
         # Combine chunks for grounding content
-        combined_content = " ".join([c['content'] for c in chunks])
+        combined_content = " ".join(c['content'] for c in chunks)
         report = report_generator.generate(data=combined_content, trajectory=trajectory)
 
         report_dict = report.model_dump()

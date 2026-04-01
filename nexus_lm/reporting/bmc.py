@@ -1,5 +1,7 @@
-from typing import List, Dict, Optional
+from typing import List, Optional
+
 from pydantic import BaseModel, Field
+
 
 class BMCReport(BaseModel):
     """
@@ -17,12 +19,17 @@ class BMCReport(BaseModel):
     hallucination_score: int = Field(default=0, ge=0, le=4)
     status: str = "Disqualified"
 
+
 class BMCReportGenerator:
     """
     Generates strategic intelligence reports and implements Keyword-Based Factual Grounding.
     """
-    def __init__(self, required_keywords: List[str] = ["cloud", "AI", "enterprise", "API", "RAG"]):
+    def __init__(self, required_keywords: Optional[List[str]] = None):
+        if required_keywords is None:
+            required_keywords = ["cloud", "AI", "enterprise", "API", "RAG"]
         self.required_keywords = required_keywords
+        # Pre-calculate lowercased keywords for performance
+        self._lower_keywords = [k.lower() for k in self.required_keywords]
 
     def _calculate_factual_grounding(self, content: str) -> int:
         """
@@ -33,7 +40,7 @@ class BMCReportGenerator:
             return 0
 
         content_lower = content.lower()
-        found_count = sum(1 for keyword in self.required_keywords if keyword.lower() in content_lower)
+        found_count = sum(1 for keyword_lower in self._lower_keywords if keyword_lower in content_lower)
 
         # Simple heuristic mapping for the 4-point severity scale
         if found_count >= 3:

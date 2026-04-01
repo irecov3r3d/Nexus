@@ -1,6 +1,7 @@
-import random
 import html
+import random
 from typing import List
+
 
 class REEREngine:
     """
@@ -28,6 +29,14 @@ class REEREngine:
         # Simple heuristic: longer, well-structured thoughts lower PPL
         return random.uniform(0.5, 2.0) - (len(thought_text) * 0.001)
 
+    def _construct_trajectory(self, initial_thought: str, mutations: List[str]) -> str:
+        """Helper to construct trajectory string following strict formatting."""
+        # Use generator expression for joining mutations as per memory guidelines.
+        # This handles both empty and non-empty mutation lists correctly,
+        # adhering to the template: <thought>\n{initial_thought}{joined_mutations}\n</thought>
+        joined_mutations = "".join(m for m in mutations)
+        return f"<thought>\n{initial_thought}{joined_mutations}\n</thought>"
+
     def search(self, initial_query: str) -> str:
         """
         Executes gradient-free local search to find optimal trajectory.
@@ -35,7 +44,10 @@ class REEREngine:
         """
         # Start with an initial seed plan based on query
         sanitized_query = html.escape(initial_query)
-        best_thought = f"<thought>\nLet me think... maybe we should address '{sanitized_query}'.\n</thought>"
+        initial_thought = f"Let me think... maybe we should address '{sanitized_query}'."
+
+        best_mutations: List[str] = []
+        best_thought = self._construct_trajectory(initial_thought, best_mutations)
         best_ppl = self._calculate_ppl_proxy(best_thought)
 
         for _ in range(self.max_iterations):
@@ -43,11 +55,13 @@ class REEREngine:
             mutation = random.choice(self.MUTATIONS)
 
             # Simulated thought insertion
-            new_thought = best_thought.replace("</thought>", f"{mutation}\n</thought>")
+            new_mutations = best_mutations + [mutation]
+            new_thought = self._construct_trajectory(initial_thought, new_mutations)
             new_ppl = self._calculate_ppl_proxy(new_thought)
 
             # Acceptance criteria (simulated annealing-like)
             if new_ppl < best_ppl or random.random() < self.temperature:
+                best_mutations = new_mutations
                 best_thought = new_thought
                 best_ppl = new_ppl
 
